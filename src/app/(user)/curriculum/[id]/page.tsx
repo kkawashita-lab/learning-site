@@ -31,7 +31,7 @@ export default async function CurriculumPage({
 
   if (!curriculum || !curriculum.published) notFound()
 
-  const curriculumIndex = allCurricula.findIndex((c) => c.id === params.id)
+  const curriculumIndex = allCurricula.findIndex((c: { id: string }) => c.id === params.id)
 
   const progressRecords = await prisma.userProgress.findMany({
     where: { userId, curriculumId: params.id },
