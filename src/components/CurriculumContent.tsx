@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import Link from 'next/link'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import MarkdownRenderer from '@/components/MarkdownRenderer'
 import TableOfContents from '@/components/TableOfContents'
 import type { TocHeading } from '@/components/TableOfContents'
@@ -39,8 +39,34 @@ export default function CurriculumContent({
   prevId,
   nextId,
 }: Props) {
+  const router = useRouter()
   const [progress, setProgress] = useState<Record<number, boolean>>(initialProgress)
   const [isSaving, setIsSaving] = useState(false)
+  const isSavingRef = useRef(false)
+
+  useEffect(() => {
+    isSavingRef.current = isSaving
+  }, [isSaving])
+
+  const handleSavingChange = useCallback((saving: boolean) => {
+    setIsSaving(saving)
+  }, [])
+
+  // 保存完了を待ってから遷移
+  const navigate = useCallback((href: string) => {
+    if (!isSavingRef.current) {
+      router.push(href)
+      return
+    }
+    const wait = () => {
+      if (!isSavingRef.current) {
+        router.push(href)
+      } else {
+        setTimeout(wait, 50)
+      }
+    }
+    setTimeout(wait, 50)
+  }, [router])
 
   useEffect(() => {
     const handler = (e: BeforeUnloadEvent) => {
@@ -52,10 +78,6 @@ export default function CurriculumContent({
     window.addEventListener('beforeunload', handler)
     return () => window.removeEventListener('beforeunload', handler)
   }, [isSaving])
-
-  const handleSavingChange = useCallback((saving: boolean) => {
-    setIsSaving(saving)
-  }, [])
 
   const checkedCount = Object.entries(progress).filter(([idx, v]) => v && Number(idx) < totalItems).length
   const pct = totalItems > 0 ? Math.round((checkedCount / totalItems) * 100) : 0
@@ -88,9 +110,9 @@ export default function CurriculumContent({
         <div className="relative max-w-4xl mx-auto px-4 pt-10 pb-14">
           {/* Breadcrumb */}
           <div className="flex items-center gap-2 text-sm text-white/60 mb-6">
-            <Link href="/dashboard" className="hover:text-white transition-colors">
+            <button onClick={() => navigate('/dashboard')} className="hover:text-white transition-colors">
               カリキュラム一覧
-            </Link>
+            </button>
             <span>/</span>
             <span className="text-white/90">{curriculum.title}</span>
           </div>
@@ -111,7 +133,7 @@ export default function CurriculumContent({
               )}
             </div>
 
-            {/* Circular progress — リアルタイム更新 */}
+            {/* Circular progress */}
             <div className="shrink-0 hidden sm:block">
               <div className="relative w-20 h-20">
                 <svg className="w-20 h-20 -rotate-90" viewBox="0 0 80 80">
@@ -135,7 +157,7 @@ export default function CurriculumContent({
             </div>
           </div>
 
-          {/* Progress bar — リアルタイム更新 */}
+          {/* Progress bar */}
           <div className="mt-6">
             <div className="flex justify-between text-xs text-white/60 mb-1.5">
               <span>進捗</span>
@@ -171,12 +193,12 @@ export default function CurriculumContent({
                 <p className="text-2xl font-bold text-blue-300 mb-1">お疲れ様でした！</p>
                 <p className="text-slate-400 text-sm">このカリキュラムをすべて完了しました。</p>
                 {nextId && (
-                  <Link
-                    href={`/curriculum/${nextId}`}
+                  <button
+                    onClick={() => navigate(`/curriculum/${nextId}`)}
                     className="inline-block mt-4 bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 py-2.5 rounded-full text-sm transition-colors shadow-lg shadow-blue-700/30"
                   >
                     次のカリキュラムへ →
-                  </Link>
+                  </button>
                 )}
               </div>
             )}
@@ -184,31 +206,31 @@ export default function CurriculumContent({
             {/* Prev / Next navigation */}
             <div className="mt-8 flex items-center justify-between gap-4">
               {prevId ? (
-                <Link
-                  href={`/curriculum/${prevId}`}
+                <button
+                  onClick={() => navigate(`/curriculum/${prevId}`)}
                   className="flex items-center gap-2 text-sm text-slate-400 hover:text-slate-100 bg-slate-800 border border-slate-700 px-4 py-2.5 rounded-lg transition-colors"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                   </svg>
                   前のカリキュラム
-                </Link>
+                </button>
               ) : (
                 <div />
               )}
-              <Link href="/dashboard" className="text-sm text-blue-400 hover:text-blue-300 transition-colors">
+              <button onClick={() => navigate('/dashboard')} className="text-sm text-blue-400 hover:text-blue-300 transition-colors">
                 一覧に戻る
-              </Link>
+              </button>
               {nextId ? (
-                <Link
-                  href={`/curriculum/${nextId}`}
+                <button
+                  onClick={() => navigate(`/curriculum/${nextId}`)}
                   className="flex items-center gap-2 text-sm text-slate-400 hover:text-slate-100 bg-slate-800 border border-slate-700 px-4 py-2.5 rounded-lg transition-colors"
                 >
                   次のカリキュラム
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
-                </Link>
+                </button>
               ) : (
                 <div />
               )}
@@ -217,7 +239,6 @@ export default function CurriculumContent({
 
           {/* Right: sticky TOC + progress */}
           <aside className="hidden xl:block w-56 shrink-0 sticky top-20 self-start space-y-3">
-            {/* Progress widget */}
             {totalItems > 0 && (
               <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
                 <p className="text-sm font-semibold text-slate-700 mb-2">
