@@ -294,8 +294,8 @@ export default function EditCurriculumPage() {
                       </div>
                     </div>
                     {previewRevision?.id === rev.id && (
-                      <pre className="mt-3 p-3 bg-gray-50 rounded-lg text-xs text-gray-600 overflow-auto max-h-48 whitespace-pre-wrap font-mono">
-                        {rev.content.slice(0, 500)}{rev.content.length > 500 ? '\n...' : ''}
+                      <pre className="mt-3 p-3 bg-gray-50 rounded-lg text-xs text-gray-600 overflow-auto max-h-[600px] whitespace-pre-wrap font-mono">
+                        {rev.content}
                       </pre>
                     )}
                   </div>
