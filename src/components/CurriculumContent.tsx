@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import MarkdownRenderer from '@/components/MarkdownRenderer'
 import TableOfContents from '@/components/TableOfContents'
@@ -40,6 +40,22 @@ export default function CurriculumContent({
   nextId,
 }: Props) {
   const [progress, setProgress] = useState<Record<number, boolean>>(initialProgress)
+  const [isSaving, setIsSaving] = useState(false)
+
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (isSaving) {
+        e.preventDefault()
+        e.returnValue = ''
+      }
+    }
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
+  }, [isSaving])
+
+  const handleSavingChange = useCallback((saving: boolean) => {
+    setIsSaving(saving)
+  }, [])
 
   const checkedCount = Object.entries(progress).filter(([idx, v]) => v && Number(idx) < totalItems).length
   const pct = totalItems > 0 ? Math.round((checkedCount / totalItems) * 100) : 0
@@ -47,6 +63,16 @@ export default function CurriculumContent({
 
   return (
     <div>
+      {/* 保存中バナー */}
+      {isSaving && (
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-slate-800 text-white text-sm px-4 py-2.5 rounded-lg shadow-lg">
+          <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+          </svg>
+          保存中...
+        </div>
+      )}
       {/* Hero */}
       <div className={`relative bg-gradient-to-br ${gradient}`}>
         <div
@@ -136,6 +162,7 @@ export default function CurriculumContent({
               curriculumId={curriculum.id}
               initialProgress={initialProgress}
               onProgressChange={setProgress}
+              onSavingChange={handleSavingChange}
             />
 
             {/* Completion message */}

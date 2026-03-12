@@ -3,7 +3,7 @@
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import rehypeRaw from 'rehype-raw'
-import { useState, useMemo, createContext, useContext } from 'react'
+import { useState, useMemo, createContext, useContext, useEffect } from 'react'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { headingToId } from '@/lib/toc'
@@ -93,11 +93,16 @@ interface Props {
   curriculumId: string
   initialProgress: Record<number, boolean>
   onProgressChange?: (progress: Record<number, boolean>) => void
+  onSavingChange?: (saving: boolean) => void
 }
 
-export default function MarkdownRenderer({ content, curriculumId, initialProgress, onProgressChange }: Props) {
+export default function MarkdownRenderer({ content, curriculumId, initialProgress, onProgressChange, onSavingChange }: Props) {
   const [progress, setProgress] = useState<Record<number, boolean>>(initialProgress)
   const [saving, setSaving] = useState<Set<number>>(new Set())
+
+  useEffect(() => {
+    onSavingChange?.(saving.size > 0)
+  }, [saving, onSavingChange])
 
   const handleCheck = async (index: number, checked: boolean) => {
     const next = { ...progress, [index]: checked }
