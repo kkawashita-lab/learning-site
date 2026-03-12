@@ -52,15 +52,19 @@ export default function CurriculumContent({
     setIsSaving(saving)
   }, [])
 
-  // 保存完了を待ってから遷移
+  // 保存完了を待ってから遷移（キャッシュを破棄してサーバーデータを再取得）
   const navigate = useCallback((href: string) => {
-    if (!isSavingRef.current) {
+    const go = () => {
       router.push(href)
+      router.refresh()
+    }
+    if (!isSavingRef.current) {
+      go()
       return
     }
     const wait = () => {
       if (!isSavingRef.current) {
-        router.push(href)
+        go()
       } else {
         setTimeout(wait, 50)
       }
