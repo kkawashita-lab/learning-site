@@ -30,15 +30,9 @@ export async function POST(req: NextRequest) {
   const ext = path.extname(file.name).toLowerCase() || '.jpg'
   const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`
 
-  // UPLOAD_DIR が設定されていればそちらを使う（本番環境用）
   const uploadDir = process.env.UPLOAD_DIR ?? path.join(process.cwd(), 'public', 'uploads')
   await mkdir(uploadDir, { recursive: true })
   await writeFile(path.join(uploadDir, filename), buffer)
 
-  // UPLOAD_DIR が設定されている場合は API 経由で配信
-  const url = process.env.UPLOAD_DIR
-    ? `/api/uploads/${filename}`
-    : `/uploads/${filename}`
-
-  return NextResponse.json({ url })
+  return NextResponse.json({ url: `/api/uploads/${filename}` })
 }
