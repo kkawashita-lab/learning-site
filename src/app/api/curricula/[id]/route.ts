@@ -40,6 +40,18 @@ export async function PUT(
     return NextResponse.json({ error: 'タイトルは必須です' }, { status: 400 })
   }
 
+  const current = await prisma.curriculum.findUnique({ where: { id: params.id } })
+  if (current) {
+    await prisma.curriculumRevision.create({
+      data: {
+        curriculumId: params.id,
+        title: current.title,
+        content: current.content,
+        savedBy: session.user.email ?? 'admin',
+      },
+    })
+  }
+
   const curriculum = await prisma.curriculum.update({
     where: { id: params.id },
     data: {
