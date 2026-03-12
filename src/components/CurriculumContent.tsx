@@ -41,7 +41,7 @@ export default function CurriculumContent({
 }: Props) {
   const [progress, setProgress] = useState<Record<number, boolean>>(initialProgress)
 
-  const checkedCount = Object.values(progress).filter(Boolean).length
+  const checkedCount = Object.entries(progress).filter(([idx, v]) => v && Number(idx) < totalItems).length
   const pct = totalItems > 0 ? Math.round((checkedCount / totalItems) * 100) : 0
   const gradient = heroGradients[curriculumIndex % heroGradients.length]
 
