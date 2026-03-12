@@ -6,8 +6,8 @@ import Providers from './providers'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'AI Colledge',
-  description: 'AI Colledge - オンライン学習プラットフォーム',
+  title: 'AI College',
+  description: 'AI College - オンライン学習プラットフォーム',
 }
 
 export default function RootLayout({
