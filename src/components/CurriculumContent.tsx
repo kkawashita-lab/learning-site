@@ -52,11 +52,10 @@ export default function CurriculumContent({
     setIsSaving(saving)
   }, [])
 
-  // 保存完了を待ってから遷移（キャッシュを破棄してサーバーデータを再取得）
+  // 保存完了を待ってから遷移（フルページロードでキャッシュを回避）
   const navigate = useCallback((href: string) => {
     const go = () => {
-      router.push(href)
-      router.refresh()
+      window.location.href = href
     }
     if (!isSavingRef.current) {
       go()
@@ -70,7 +69,7 @@ export default function CurriculumContent({
       }
     }
     setTimeout(wait, 50)
-  }, [router])
+  }, [])
 
   useEffect(() => {
     const handler = (e: BeforeUnloadEvent) => {
