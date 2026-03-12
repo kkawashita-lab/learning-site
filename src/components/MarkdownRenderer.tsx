@@ -3,7 +3,8 @@
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import rehypeRaw from 'rehype-raw'
-import { useState, useMemo, createContext, useContext, useEffect } from 'react'
+import { useState, useMemo, createContext, useContext, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { headingToId } from '@/lib/toc'
@@ -97,6 +98,7 @@ interface Props {
 }
 
 export default function MarkdownRenderer({ content, curriculumId, initialProgress, onProgressChange, onSavingChange }: Props) {
+  const router = useRouter()
   const [progress, setProgress] = useState<Record<number, boolean>>(initialProgress)
   const [saving, setSaving] = useState<Set<number>>(new Set())
 
@@ -104,7 +106,7 @@ export default function MarkdownRenderer({ content, curriculumId, initialProgres
     onSavingChange?.(saving.size > 0)
   }, [saving, onSavingChange])
 
-  const handleCheck = async (index: number, checked: boolean) => {
+  const handleCheck = useCallback(async (index: number, checked: boolean) => {
     const next = { ...progress, [index]: checked }
     setProgress(next)
     onProgressChange?.(next)
@@ -115,10 +117,11 @@ export default function MarkdownRenderer({ content, curriculumId, initialProgres
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ curriculumId, checkboxIndex: index, checked }),
       })
+      router.refresh()
     } finally {
       setSaving((prev) => { const n = new Set(prev); n.delete(index); return n })
     }
-  }
+  }, [progress, curriculumId, onProgressChange, router])
 
   // マークダウンのソース行番号 → チェックボックスインデックスのマップ
   // (remark は行番号を 1-indexed で管理するため +1 する)
