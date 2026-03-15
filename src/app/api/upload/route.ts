@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { writeFile, mkdir } from 'fs/promises'
-import path from 'path'
+import { supabaseAdmin, STORAGE_BUCKET } from '@/lib/supabase'
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
 const MAX_SIZE = 10 * 1024 * 1024 // 10MB
@@ -27,12 +26,18 @@ export async function POST(req: NextRequest) {
   }
 
   const buffer = Buffer.from(await file.arrayBuffer())
-  const ext = path.extname(file.name).toLowerCase() || '.jpg'
-  const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`
+  const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg'
+  const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
 
-  const uploadDir = process.env.UPLOAD_DIR ?? path.join(process.cwd(), 'public', 'uploads')
-  await mkdir(uploadDir, { recursive: true })
-  await writeFile(path.join(uploadDir, filename), buffer)
+  const { error } = await supabaseAdmin.storage
+    .from(STORAGE_BUCKET)
+    .upload(filename, buffer, { contentType: file.type })
 
-  return NextResponse.json({ url: `/api/uploads/${filename}` })
+  if (error) {
+    return NextResponse.json({ error: 'アップロードに失敗しました' }, { status: 500 })
+  }
+
+  const { data } = supabaseAdmin.storage.from(STORAGE_BUCKET).getPublicUrl(filename)
+
+  return NextResponse.json({ url: data.publicUrl })
 }

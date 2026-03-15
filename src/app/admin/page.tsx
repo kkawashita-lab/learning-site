@@ -40,6 +40,12 @@ export default async function AdminDashboard() {
           >
             カリキュラムを新規作成
           </Link>
+          <Link
+            href="/admin/users-progress"
+            className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors"
+          >
+            ユーザー進捗を確認
+          </Link>
         </div>
       </div>
     </div>

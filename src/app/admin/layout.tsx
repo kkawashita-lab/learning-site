@@ -37,6 +37,9 @@ export default async function AdminLayout({
             <Link href="/admin/announcements" className="text-sm text-slate-600 hover:text-[#0f1f4b] font-medium transition-colors">
               お知らせ管理
             </Link>
+            <Link href="/admin/users-progress" className="text-sm text-slate-600 hover:text-[#0f1f4b] font-medium transition-colors">
+              ユーザー進捗
+            </Link>
           </nav>
 
           {/* Spacer */}
